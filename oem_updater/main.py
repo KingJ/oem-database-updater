@@ -1,6 +1,4 @@
-from oem_core.models.collection import Collection
-from oem_core.models.database import Database
-from oem_core.models.format import Format
+from oem_core.models import Database, Format
 from oem_updater.sources import SOURCES
 
 import logging

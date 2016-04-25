@@ -1,9 +1,8 @@
-from oem_core.models.metadata import Metadata
+from oem_core.models import Metadata
 from oem_updater.core.elapsed import Elapsed
 from oem_updater.sources.anidb.parser import Parser
 from oem_updater.sources.core.base import Source
 
-from copy import deepcopy
 from xml.etree import ElementTree
 import logging
 import os
@@ -146,7 +145,7 @@ class AniDB(Source):
                 return True, False
         else:
             # Construct new index item
-            metadata = Metadata(self.collection.index, service_key)
+            metadata = Metadata(self.collection, service_key)
 
             # Update index
             self.collection.set(service_key, metadata)

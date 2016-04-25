@@ -1,6 +1,4 @@
-from oem_core.models import Item
-from oem_core.models.episode import Episode, EpisodeMapping
-from oem_core.models.season import Season, SeasonMapping
+from oem_core.models import Item, Season, SeasonMapping, Episode, EpisodeMapping, Range
 from oem_updater.core.elapsed import Elapsed
 from oem_updater.core.helpers import try_convert
 
@@ -29,11 +27,9 @@ class Parser(object):
             collection=collection,
             media=cls.get_media(collection),
 
-            identifiers={
-                'anidb': anidb_id
-            },
-
+            identifiers={'anidb': anidb_id},
             names={node.find('name').text},
+
             default_season=node.attrib.get('defaulttvdbseason'),
             episode_offset=node.attrib.get('episodeoffset')
         )
@@ -51,9 +47,9 @@ class Parser(object):
                 # Invalid item
                 return None
         elif collection.source == 'tvdb' or collection.target == 'tvdb':
-            if imdb_id:
-                # log.debug('Ignoring item %r, IMDB identifier available', anidb_id)
-                return None
+            # if imdb_id:
+            #     # log.debug('Ignoring item %r, IMDB identifier available', anidb_id)
+            #     return None
 
             if tvdb_id and try_convert(tvdb_id, int) is not None:
                 item.identifiers['tvdb'] = tvdb_id.split(',')
@@ -139,24 +135,30 @@ class Parser(object):
             return False
 
         # Construct episodes
-        for source_episode, target_episode in episodes:
-            if source_episode not in item.seasons[source_season].episodes:
+        for (s_number, s_start, s_end), (t_number, t_start, t_end) in episodes:
+            # Ensure episode exists
+            if s_number not in item.seasons[source_season].episodes:
                 # Construct episode
-                item.seasons[source_season].episodes[source_episode] = Episode(
+                item.seasons[source_season].episodes[s_number] = Episode(
                     collection,
                     item.seasons[source_season],
 
-                    number=source_episode
+                    number=s_number
                 )
 
-            # Construct episode
-            item.seasons[source_season].episodes[source_episode].mappings.append(
+            # Construct episode mapping
+            item.seasons[source_season].episodes[s_number].mappings.append(
                 EpisodeMapping(
                     collection,
-                    item.seasons[source_season].episodes[source_episode],
+                    item.seasons[source_season].episodes[s_number],
 
                     season=target_season,
-                    number=target_episode
+                    number=t_number,
+
+                    timeline={
+                        'source': Range(collection, t_start, t_end),
+                        'target': Range(collection, s_start, s_end)
+                    }
                 )
             )
 
@@ -191,17 +193,44 @@ class Parser(object):
             if len(item) != 2:
                 continue
 
-            num_anidb, num_other = item
+            anidb_numbers, other_numbers = item
 
             # Select source + target numbers
             if collection.source == 'anidb':
-                num_source, num_target = num_anidb, num_other
+                source_numbers, target_numbers = anidb_numbers, other_numbers
             else:
-                num_source, num_target = num_other, num_anidb
+                source_numbers, target_numbers = other_numbers, anidb_numbers
 
-            # Ensure source number is defined
-            if num_source == '0':
-                continue
+            # Split numbers
+            source_numbers = source_numbers.split('+')
+            source_count = len(source_numbers)
 
-            # Yield item to iterator
-            yield num_source, num_target
+            target_numbers = target_numbers.split('+')
+            target_count = len(target_numbers)
+
+            # Iterate over source episodes
+            for source_index, source_number in enumerate(source_numbers):
+                # Ensure source number is defined
+                if source_number == '0' or source_number == '99':
+                    continue
+
+                # Calculate source timeline range
+                source_start = int(round((float(source_index) / source_count) * 100, 0))
+                source_end = int(round((float(source_index + 1) / source_count) * 100, 0))
+
+                # Iterate over target episodes
+                for target_index, target_number in enumerate(target_numbers):
+                    # Calculate target timeline range
+                    target_start = int(round((float(target_index) / target_count) * 100, 0))
+                    target_end = int(round((float(target_index + 1) / target_count) * 100, 0))
+
+                    # Yield episode
+                    yield (
+                        source_number,
+                        source_start,
+                        source_end
+                    ), (
+                        target_number,
+                        target_start,
+                        target_end
+                    )
