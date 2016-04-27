@@ -166,16 +166,28 @@ class Parser(object):
 
     @classmethod
     def parse_mappings_season(cls, collection, item, mapping, (source_season, target_season)):
-        # TODO reverse season mapping if `collection.source` != "anidb"
+        # Retrieve parameters, convert to integers
+        start = int(mapping.attrib.get('start'))
+        end = int(mapping.attrib.get('end'))
 
+        offset = int(mapping.attrib.get('offset'))
+
+        # Reverse season mappings for non-anidb source collections
+        if collection.source != 'anidb':
+            start += offset
+            end += offset
+
+            offset = -offset
+
+        # Construct season mapping
         item.seasons[source_season].mappings.append(
             SeasonMapping(
                 collection, target_season,
 
-                start=mapping.attrib.get('start'),
-                end=mapping.attrib.get('end'),
+                start=start,
+                end=end,
 
-                offset=mapping.attrib.get('offset')
+                offset=offset
             )
         )
 
