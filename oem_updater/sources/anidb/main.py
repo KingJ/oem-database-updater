@@ -60,7 +60,7 @@ class AniDB(Source):
             success, updated = self.process_one(item)
 
             if not success:
-                return False
+                continue
 
             if updated:
                 count_updated += 1
@@ -121,17 +121,21 @@ class AniDB(Source):
     @Elapsed.track
     def update_one(self, service, service_key, hash_key, item):
         # Check if item has already been seen
-        if (service, service_key) in self.seen:
+        if service_key in self.collection:
             # Add item to `previous` object (and convert to "multiple" structure if needed)
-            previous = self.seen[(service, service_key)]
+            previous = self.collection[service_key].get()
 
             if not previous.add(item, service):
-                log.warn('Unable to merge %r with %r', item, previous)
+                return False, False
 
-            # Switch to `previous` item
+            # Update `current` item
             current = previous
         else:
+            # Update `current` item
             current = item
+
+            # Update seen keys
+            self.seen[(service, service_key)] = current
 
         # Construct hash of data
         hash = item.hash()
@@ -155,8 +159,5 @@ class AniDB(Source):
 
         if not metadata.update(current, hash_key, hash):
             log.warn('[%-5s] Unable to update item: %r (revision: %r)', service, service_key, metadata.revision)
-
-        # Update seen keys
-        self.seen[(service, service_key)] = current
 
         return True, True

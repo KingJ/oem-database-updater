@@ -75,8 +75,7 @@ class Parser(object):
 
         if item.media == 'show':
             # Parse mappings
-            if not cls.parse_mappings(collection, item, mappings):
-                return None
+            cls.parse_mappings(collection, item, mappings)
 
         # Add supplemental
         if supplemental is not None:
@@ -108,8 +107,6 @@ class Parser(object):
         if not mappings:
             return True
 
-        error = False
-
         for mapping in mappings:
             source_season = mapping.attrib.get(collection.source + 'season')
             target_season = mapping.attrib.get(collection.target + 'season')
@@ -121,11 +118,11 @@ class Parser(object):
 
             # Parse mapping
             if mapping.text:
-                error |= not cls.parse_mappings_episode(collection, item, mapping, (source_season, target_season))
+                cls.parse_mappings_episode(collection, item, mapping, (source_season, target_season))
             else:
-                error |= not cls.parse_mappings_season(collection, item, mapping, (source_season, target_season))
+                cls.parse_mappings_season(collection, item, mapping, (source_season, target_season))
 
-        return not error
+        return True
 
     @classmethod
     def parse_mappings_episode(cls, collection, item, mapping, (source_season, target_season)):
