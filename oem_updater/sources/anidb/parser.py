@@ -75,7 +75,8 @@ class Parser(object):
 
         if item.media == 'show':
             # Parse mappings
-            cls.parse_mappings(collection, item, mappings)
+            if not cls.parse_mappings(collection, item, mappings):
+                return None
 
         # Add supplemental
         if supplemental is not None:
@@ -107,21 +108,28 @@ class Parser(object):
         if not mappings:
             return True
 
+        # Parse mappings
+        error = None
+
         for mapping in mappings:
             source_season = mapping.attrib.get(collection.source + 'season')
             target_season = mapping.attrib.get(collection.target + 'season')
 
-            # Ensure season exists
-            if source_season not in item.seasons:
-                # Construct season
-                item.seasons[source_season] = Season(collection, item, source_season)
-
             # Parse mapping
             if mapping.text:
-                cls.parse_mappings_episode(collection, item, mapping, (source_season, target_season))
+                if cls.parse_mappings_episode(collection, item, mapping, (source_season, target_season)):
+                    error = False
+                elif error is None and item.parameters.get('default_season') == source_season:
+                    error = True
             else:
                 cls.parse_mappings_season(collection, item, mapping, (source_season, target_season))
 
+        # Check for parsing error
+        if error:
+            log.warn('[anidb: %s] Ignoring item, no episodes could be parsed from mappings', item.identifiers.get('anidb'))
+            return False
+
+        # Successfully parsed item
         return True
 
     @classmethod
@@ -130,6 +138,10 @@ class Parser(object):
 
         if not episodes:
             return False
+
+        # Ensure season exists
+        if source_season not in item.seasons:
+            item.seasons[source_season] = Season(collection, item, source_season)
 
         # Construct episodes
         for (s_number, s_start, s_end), (t_number, t_start, t_end) in episodes:
@@ -175,6 +187,10 @@ class Parser(object):
             end += offset
 
             offset = -offset
+
+        # Ensure season exists
+        if source_season not in item.seasons:
+            item.seasons[source_season] = Season(collection, item, source_season)
 
         # Construct season mapping
         item.seasons[source_season].mappings.append(
