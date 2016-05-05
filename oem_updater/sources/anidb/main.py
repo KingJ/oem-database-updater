@@ -1,5 +1,5 @@
-from oem_core.models import Metadata
 from oem_updater.core.elapsed import Elapsed
+from oem_updater.models import Metadata
 from oem_updater.sources.anidb.parser import Parser
 from oem_updater.sources.core.base import Source
 

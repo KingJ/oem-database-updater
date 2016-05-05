@@ -1,4 +1,4 @@
-from oem_core.models import Item, Season, SeasonMapping, Episode, EpisodeMapping, Range
+from oem_updater.models import Item, Season, SeasonMapping, Episode, EpisodeMapping, Range
 from oem_updater.core.elapsed import Elapsed
 from oem_updater.core.helpers import try_convert
 
