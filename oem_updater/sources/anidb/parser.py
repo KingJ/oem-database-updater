@@ -22,6 +22,13 @@ class Parser(object):
         elif len(anidb_id) < 1:
             anidb_id = None
 
+        # Retrieve default season
+        default_season = node.attrib.get('defaulttvdbseason')
+
+        if default_season is None:
+            # log.warn('[anidb: %s] Ignoring item, missing default season', anidb_id)
+            return None
+
         # Construct item
         item = Item.construct(
             collection=collection,
@@ -30,7 +37,7 @@ class Parser(object):
             identifiers={'anidb': anidb_id},
             names={node.find('name').text},
 
-            default_season=node.attrib.get('defaulttvdbseason'),
+            default_season=default_season,
             episode_offset=node.attrib.get('episodeoffset')
         )
 
@@ -126,7 +133,7 @@ class Parser(object):
 
         # Check for parsing error
         if error:
-            log.warn('[anidb: %s] Ignoring item, no episodes could be parsed from mappings', item.identifiers.get('anidb'))
+            # log.warn('[anidb: %s] Ignoring item, no episodes could be parsed from mappings', item.identifiers.get('anidb'))
             return False
 
         # Successfully parsed item
