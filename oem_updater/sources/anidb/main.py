@@ -120,6 +120,9 @@ class AniDB(Source):
 
     @Elapsed.track
     def update_one(self, service, service_key, hash_key, item):
+        # Construct hash of `item`
+        hash = item.hash()
+
         # Check if item has already been seen
         if service_key in self.collection:
             # Add item to `previous` object (and convert to "multiple" structure if needed)
@@ -137,9 +140,6 @@ class AniDB(Source):
             # Update seen keys
             self.seen[(service, service_key)] = current
 
-        # Construct hash of data
-        hash = item.hash()
-
         # Try retrieve item metadata from collection
         metadata = self.collection.get(service_key)
 
@@ -147,6 +147,8 @@ class AniDB(Source):
             # Ensure `item` doesn't match metadata (already up to date)
             if metadata.hashes.get(hash_key) == hash:
                 return True, False
+            elif hash_key in metadata.hashes:
+                log.debug('Updating item, %r != %r', metadata.hashes[hash_key], hash)
         else:
             # Construct new index item
             metadata = Metadata(self.collection, service_key)
