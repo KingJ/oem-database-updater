@@ -1,4 +1,8 @@
-from oem_core.models import Database, Format
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+from oem_core.core.plugin import PluginManager
+from oem_updater.models import Database
 from oem_updater.sources import SOURCES
 
 import logging
@@ -13,9 +17,11 @@ DEFAULT_COLLECTIONS = [
 
 DEFAULT_FORMATS = [
     'json',
-    # 'mpack',
-    # 'min.json',
-    # 'min.mpack'
+    'json/pretty',
+    'msgpack',
+
+    'minimize+json',
+    'minimize+msgpack'
 ]
 
 DEFAULT_SOURCES = [
@@ -24,20 +30,35 @@ DEFAULT_SOURCES = [
 
 
 class Updater(object):
-    def __init__(self, collections=DEFAULT_COLLECTIONS, formats=DEFAULT_FORMATS, sources=DEFAULT_SOURCES):
+    def __init__(self, collections=DEFAULT_COLLECTIONS, formats=None, sources=DEFAULT_SOURCES):
         self.collections = collections
 
-        # Parse format extensions
-        self.formats = [
-            Format.from_extension(fmt)
-            for fmt in formats
-        ]
+        # Discover installed plugins
+        PluginManager.discover()
+
+        # Retrieve formats
+        self.formats = dict(self._load_formats(formats))
 
         # Retrieve references to sources
         self.sources = dict([
             (key, SOURCES[key])
             for key in sources
         ])
+
+    @staticmethod
+    def _load_formats(formats):
+        for name in (formats or DEFAULT_FORMATS):
+            cls = PluginManager.get('format', name)
+
+            if cls is None:
+                log.warn('Unable to find plugin: %r', name)
+                continue
+
+            if not cls.available:
+                log.warn('Plugin %r is not available', name)
+                continue
+
+            yield cls.__key__, cls()
 
     def run(self, base_path, **kwargs):
         if not os.path.exists(base_path):
@@ -55,8 +76,8 @@ class Updater(object):
             # Build collection path
             database_path = os.path.join(
                 base_path,
-                'oem-%s-%s' % (source, target),
-                'oem_%s_%s' % (source, target)
+                'oem-database-%s-%s' % (source, target),
+                'oem_database_%s_%s' % (source, target)
             )
 
             # Ensure database exists
@@ -65,7 +86,7 @@ class Updater(object):
                 continue
 
             # Run updater on database for each format
-            for fmt in self.formats:
+            for fmt in self.formats.itervalues():
                 # Load database
                 database = Database.load(database_path, fmt, source, target)
 
