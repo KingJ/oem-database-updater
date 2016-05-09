@@ -1,4 +1,5 @@
 from oem_core import models
+from oem_framework.core.helpers import timestamp_utc
 
 import os
 
@@ -13,7 +14,15 @@ class Metadata(models.Metadata):
 
         # Update metadata
         if not self.hashes or hash_key in self.hashes:
-            self.revision += 1
+            now = timestamp_utc()
+
+            # Update timestamps
+            if self.created_at is None:
+                # Set initial timestamps
+                self.created_at = now
+                self.updated_at = now
+            else:
+                self.updated_at = now
 
         self.hashes[hash_key] = hash
 

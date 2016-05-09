@@ -87,6 +87,9 @@ class Updater(object):
 
             # Run updater on database for each format
             for fmt in self.formats.itervalues():
+                if fmt.__construct__ is False:
+                    continue
+
                 # Load database
                 database = Database.load(database_path, fmt, source, target)
 
@@ -116,7 +119,7 @@ class Updater(object):
 
 
 if __name__ == '__main__':
-    from oem_updater.core.elapsed import Elapsed
+    from oem_framework.core.elapsed import Elapsed
     from oem_updater.cli import UpdaterCLI
 
     # Run CLI
