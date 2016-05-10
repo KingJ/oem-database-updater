@@ -1,4 +1,5 @@
-from core.mock import MockCollection
+from tests.core.mock import MockCollection
+
 from oem_core.models import Show
 from oem_updater.sources.anidb.parser import Parser
 
