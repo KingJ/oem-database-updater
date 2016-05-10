@@ -151,7 +151,7 @@ class AniDB(Source):
                 log.debug('Updating item, %r != %r', metadata.hashes[hash_key], hash)
         else:
             # Construct new index item
-            metadata = Metadata(self.collection, service_key)
+            metadata = self.collection.index.create(service_key)
 
             # Update index
             self.collection.set(service_key, metadata)

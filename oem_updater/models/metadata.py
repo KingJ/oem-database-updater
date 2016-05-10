@@ -6,9 +6,7 @@ import os
 
 class Metadata(models.Metadata):
     def update(self, item, hash_key, hash):
-        path = os.path.join(self.index.items_path, self.key)
-
-        if not self.index.format.to_path(item, path):
+        if not self.storage.format.to_path(item, self.storage.path):
             # Unable to write item to disk
             return False
 

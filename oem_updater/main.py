@@ -1,4 +1,7 @@
 import logging
+
+from oem_framework.storage import ProviderStorage
+
 logging.basicConfig(level=logging.DEBUG)
 
 from oem_core.core.plugin import PluginManager
@@ -90,8 +93,19 @@ class Updater(object):
                 if fmt.__construct__ is False:
                     continue
 
+                # Build updater client
+                client = UpdaterClient(fmt)
+
+                # Build database storage interface
+                storage = PluginManager.get('storage', 'file/database')(
+                    self, source, target,
+                    path=database_path
+                )
+
+                storage.initialize(client)
+
                 # Load database
-                database = Database.load(database_path, fmt, source, target)
+                database = Database.load(storage, source, target)
 
                 # Load database collections
                 database.load_collections([
@@ -116,6 +130,16 @@ class Updater(object):
                         return False
 
         return True
+
+
+class UpdaterClient(object):
+    def __init__(self, fmt):
+        self.provider = UpdaterProvider(fmt)
+
+
+class UpdaterProvider(object):
+    def __init__(self, fmt):
+        self.format = fmt
 
 
 if __name__ == '__main__':
