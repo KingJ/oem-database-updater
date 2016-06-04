@@ -35,7 +35,7 @@ class Parser(object):
             media=cls.get_media(collection),
 
             identifiers={'anidb': anidb_id},
-            names={node.find('name').text},
+            names={},
 
             default_season=default_season,
             episode_offset=node.attrib.get('episodeoffset')
@@ -80,10 +80,18 @@ class Parser(object):
             if len(keys) < 2:
                 item.identifiers[service] = keys[0]
 
-        if item.media == 'show':
-            # Parse mappings
-            if not cls.parse_mappings(collection, item, mappings):
-                return None
+        # Parse names
+        target_key = item.identifiers[collection.target]
+
+        if type(target_key) is list:
+            for key in target_key:
+                item.names[key] = {node.find('name').text}
+        else:
+            item.names[target_key] = {node.find('name').text}
+
+        # Parse mappings
+        if item.media == 'show' and not cls.parse_mappings(collection, item, mappings):
+            return None
 
         # Add supplemental
         if supplemental is not None:

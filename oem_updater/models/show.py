@@ -12,6 +12,9 @@ class Show(models.Show):
         if self == item:
             return True
 
+        if self.matches_identifiers(item.identifiers):
+            return self.update(item)
+
         # Demote current show to a season
         if self.collection.target in self.identifiers and not self.demote(service):
             return False
@@ -41,12 +44,20 @@ class Show(models.Show):
 
         return not error
 
+    def update(self, item):
+        for key, names in item.names.iteritems():
+            self.names[key] = names
+
+        self.supplemental = item.supplemental
+        self.parameters = item.parameters
+        return True
+
     def clear(self):
         if self.collection.target not in self.identifiers:
             return False
 
         # Reset attributes
-        self.names = set()
+        self.names = {}
 
         self.supplemental = {}
         self.parameters = {}
@@ -58,7 +69,7 @@ class Show(models.Show):
     def demote(self, service):
         # Update existing seasons
         for season_num, season in self.seasons.items():
-            self.seasons[season_num].update(
+            self.seasons[season_num].update_attributes(
                 identifiers=self.identifiers,
                 names=self.names,
 

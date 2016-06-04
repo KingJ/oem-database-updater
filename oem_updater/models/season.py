@@ -13,8 +13,11 @@ class Season(models.Season):
         if self == item:
             return True
 
+        if self.matches_identifiers(item.identifiers):
+            return self.update(item)
+
         # Break season into episodes (if we are merging episodes
-        if (self.episodes or item.episodes) and self.collection.target in self.identifiers and not self.demote():
+        if ('episode_offset' in self.parameters or self.episodes or self.mappings) and self.collection.target in self.identifiers and not self.demote():
             return False
 
         # Retrieve episode number
@@ -34,20 +37,24 @@ class Season(models.Season):
             for key, episode in item.episodes.items():
                 episode.identifiers = episode.identifiers or deepcopy(item.identifiers)
 
-                for name in item.names:
-                    episode.names.add(name)
+                for name_key, names in item.names.iteritems():
+                    episode.names[name_key] = names
 
                 episode.supplemental = episode.supplemental or deepcopy(item.supplemental)
                 episode.parameters = episode.parameters or deepcopy(item.parameters)
 
                 if key in self.episodes:
+                    # Update existing episode (if one exists)
                     if type(self.episodes[key]) is list:
-                        # Ensure `episode` isn't already in season
+                        # Search list for matching episode
                         for ep in self.episodes[key]:
-                            if ep == episode:
-                                return True
-                    elif self.episodes[key] == episode:
-                        return True
+                            if ep.identifiers == episode.identifiers:
+                                # Update existing episode
+                                return ep.update(episode)
+
+                    elif self.episodes[key].identifiers == episode.identifiers:
+                        # Update existing episode
+                        return self.episodes[key].update(episode)
 
                     # Convert to episodes list
                     if type(self.episodes[key]) is not list:
@@ -79,8 +86,8 @@ class Season(models.Season):
                 elif self.identifiers[service] != key:
                     self.identifiers[service] = {self.identifiers[service], key}
 
-            for name in item.names:
-                self.names.add(name)
+            for key, names in item.names.iteritems():
+                self.names[key] = names
 
             self.supplemental.update(item.supplemental)
             self.parameters.update(item.parameters)
@@ -123,12 +130,20 @@ class Season(models.Season):
             # Update mapping
             mapping.identifiers = deepcopy(item.identifiers)
 
-            for name in item.names:
-                mapping.names.add(name)
+            for key, names in item.names.iteritems():
+                mapping.names[key] = names
 
             # Store mapping in current season
             self.mappings.append(mapping)
 
+        return True
+
+    def update(self, item):
+        for key, name in item.names.iteritems():
+            self.names[key] = name
+
+        self.supplemental = item.supplemental
+        self.parameters = item.parameters
         return True
 
     def clear(self):
@@ -136,7 +151,7 @@ class Season(models.Season):
             return False
 
         # Reset attributes
-        self.names = set()
+        self.names = {}
 
         self.supplemental = {}
         self.parameters = {}
@@ -187,8 +202,8 @@ class Season(models.Season):
                     # Update episode
                     episode.identifiers = deepcopy(self.identifiers)
 
-                    for name in self.names:
-                        episode.names.add(name)
+                    for name_key, names in self.names.iteritems():
+                        episode.names[name_key] = names
 
                     episode.supplemental = episode.supplemental or deepcopy(self.supplemental)
                     episode.parameters = episode.parameters or deepcopy(self.parameters)
@@ -210,8 +225,8 @@ class Season(models.Season):
                 # Update mapping
                 mapping.identifiers = deepcopy(self.identifiers)
 
-                for name in self.names:
-                    mapping.names.add(name)
+                for key, names in self.names.iteritems():
+                    mapping.names[key] = names
 
                 demoted = True
 
@@ -230,6 +245,16 @@ class Season(models.Season):
         identifiers = deepcopy(item.identifiers)
         identifiers.pop(item.collection.source)
 
+        # Ensure "names" is in dictionary format
+        names = item.names
+
+        if type(names) is not dict:
+            # Retrieve target key
+            target_key = identifiers[item.collection.target]
+
+            # Convert "names" to dictionary
+            names = {target_key: item.names}
+
         # Build season parameters
         parameters = deepcopy(item.parameters)
 
@@ -246,7 +271,7 @@ class Season(models.Season):
             number,
 
             identifiers,
-            item.names,
+            names,
 
             supplemental=item.supplemental,
             **parameters
@@ -262,7 +287,7 @@ class Season(models.Season):
 
         return season
 
-    def update(self, identifiers=None, names=None, supplemental=None, parameters=None):
+    def update_attributes(self, identifiers=None, names=None, supplemental=None, parameters=None):
         # Copy attributes
         for service, key in (identifiers or {}).items():
             # Ignore source keys
@@ -281,8 +306,8 @@ class Season(models.Season):
             elif self.identifiers[service] != key:
                 self.identifiers[service] = {self.identifiers[service], key}
 
-        for name in (names or []):
-            self.names.add(name)
+        for key, value in (names or {}).iteritems():
+            self.names[key] = value
 
         if supplemental is not None:
             self.supplemental.update(supplemental)
