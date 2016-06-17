@@ -20,6 +20,7 @@ class AniDB(Source):
         super(AniDB, self).__init__(collection, **kwargs)
 
         self.seen = {}
+        self.updated = {}
 
     def run(self):
         # Retrieve source path
@@ -123,9 +124,9 @@ class AniDB(Source):
         hash = item.hash()
 
         # Check if item has already been seen
-        if service_key in self.collection:
+        if (service, service_key) in self.seen:
             # Add item to `previous` object (and convert to "multiple" structure if needed)
-            previous = self.collection[service_key].get()
+            previous = self.seen[(service, service_key)]
 
             if not previous.add(item, service):
                 return False, False
@@ -144,16 +145,21 @@ class AniDB(Source):
 
         if metadata:
             # Ensure `item` doesn't match metadata (already up to date)
-            if metadata.hashes.get(hash_key) == hash:
+            if (service, service_key) in self.updated:
+                log.debug('Updating item: %s/%s', service, service_key)
+            elif metadata.hashes.get(hash_key) == hash:
                 return True, False
             elif hash_key in metadata.hashes:
-                log.debug('Updating item, %r != %r', metadata.hashes[hash_key], hash)
+                log.debug('Updating item: %s/%s (%r != %r)', service, service_key, metadata.hashes[hash_key], hash)
         else:
             # Construct new index item
             metadata = self.collection.index.create(service_key)
 
             # Update index
             self.collection.set(service_key, metadata)
+
+        # Mark item as updated
+        self.updated[(service, service_key)] = True
 
         # Update item
         # log.debug('[%-5s] Updating item: %r (revision: %r)', service, service_key, metadata.revision)

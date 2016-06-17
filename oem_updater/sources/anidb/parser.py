@@ -1,6 +1,7 @@
 from oem_framework.core.elapsed import Elapsed
 from oem_framework.core.helpers import try_convert
 from oem_updater.models import Item, Season, SeasonMapping, Episode, EpisodeMapping, Range
+from oem_updater.sources.anidb.absolute import AbsoluteMapper
 
 import logging
 import re
@@ -26,7 +27,6 @@ class Parser(object):
         default_season = node.attrib.get('defaulttvdbseason')
 
         if default_season is None:
-            # log.warn('[anidb: %s] Ignoring item, missing default season', anidb_id)
             return None
 
         # Construct item
@@ -54,10 +54,6 @@ class Parser(object):
                 # Invalid item
                 return None
         elif collection.source == 'tvdb' or collection.target == 'tvdb':
-            # if imdb_id:
-            #     # log.debug('Ignoring item %r, IMDB identifier available', anidb_id)
-            #     return None
-
             if tvdb_id and try_convert(tvdb_id, int) is not None:
                 item.identifiers['tvdb'] = tvdb_id.split(',')
             else:
@@ -104,6 +100,8 @@ class Parser(object):
                 if node is not None:
                     item.supplemental[key] = node.text
 
+        # Parse absolute mappings
+        AbsoluteMapper.process(collection, item)
         return item
 
     @classmethod

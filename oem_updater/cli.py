@@ -31,6 +31,9 @@ class UpdaterCLI(object):
         # Setup logging
         logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
 
+        # Setup logger levels
+        logging.getLogger("tvdb_api").setLevel(logging.INFO)
+
         # Construct updater
         if updater is None:
             updater = Updater(formats=args.format)

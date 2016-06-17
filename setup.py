@@ -9,6 +9,10 @@ setup(
     author_email="me@dgardiner.net",
 
     install_requires=[
-        'msgpack-python>=0.4.7'
+        'appdirs>=1.4.0',
+        'msgpack-python>=0.4.7',
+
+        'git+git://github.com/fuzeman/anidb.py.git#egg=anidb.py',
+        'git+git://github.com/fuzeman/tvdb_api.git#egg=tvdb_api'
     ]
 )
