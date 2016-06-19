@@ -282,6 +282,8 @@ class Season(models.Season):
             season.episodes = item.seasons[number].episodes
             season.mappings = item.seasons[number].mappings
 
+            season.parameters = item.seasons[number].parameters
+
         if season.parameters is None:
             pass
 
@@ -313,7 +315,14 @@ class Season(models.Season):
             self.supplemental.update(supplemental)
 
         if parameters is not None:
-            self.parameters.update(parameters)
+            # Build parameters
+            parameters = deepcopy(parameters)
 
-            if 'default_season' in self.parameters:
-                del self.parameters['default_season']
+            if 'default_season' in parameters:
+                del parameters['default_season']
+
+            # Overwrite with current parameters
+            parameters.update(self.parameters)
+
+            # Update season
+            self.parameters = parameters
