@@ -57,6 +57,15 @@ class AbsoluteMapper(object):
 
     @classmethod
     def map_episodes_anidb(cls, item, m_anidb, m_tvdb):
+        # Parse episode offset
+        episode_offset = None
+
+        if 'episode_offset' in item.parameters:
+            try:
+                episode_offset = int(item.parameters['episode_offset'])
+            except Exception:
+                pass
+
         # Ensure season exists
         if '1' not in item.seasons:
             item.seasons['1'] = Season(item.collection, item, '1')
@@ -79,6 +88,12 @@ class AbsoluteMapper(object):
 
             absolute_num = int(absolute_num)
 
+            if episode_offset:
+                absolute_num -= episode_offset
+
+            if absolute_num < 1:
+                continue
+
             # Ensure episode exists in anidb
             if absolute_num not in m_anidb.episodes:
                 continue
@@ -95,11 +110,27 @@ class AbsoluteMapper(object):
                 )
             )
 
+        # Remove episode offset
+        if 'episode_offset' in item.parameters:
+            del item.parameters['episode_offset']
+
         # Update default season
         item.parameters['default_season'] = '1'
 
     @classmethod
     def map_episodes_tvdb(cls, item, m_anidb, m_tvdb):
+        # Parse episode offset
+        episode_offset = None
+
+        if 'episode_offset' in item.parameters:
+            try:
+                episode_offset = int(item.parameters['episode_offset'])
+            except Exception:
+                pass
+
+        # Construct seasons
+        first_season = None
+
         for season_num, season in m_tvdb.items():
             if season_num < 1:
                 continue
@@ -117,13 +148,19 @@ class AbsoluteMapper(object):
 
             absolute_num = int(absolute_num)
 
+            if episode_offset:
+                absolute_num -= episode_offset
+
+            if absolute_num < 1:
+                continue
+
             # Ensure episode exists in anidb
             if absolute_num not in m_anidb.episodes:
                 continue
 
             # Set default season to first season
-            if item.parameters['default_season'] == 'a':
-                item.parameters['default_season'] = season_num
+            if first_season is None:
+                first_season = season_num
 
             # Construct season
             if season_num not in item.seasons:
@@ -131,6 +168,13 @@ class AbsoluteMapper(object):
 
             item.seasons[season_num].parameters['default_season'] = 1
             item.seasons[season_num].parameters['episode_offset'] = absolute_num - 1
+
+        # Remove episode offset
+        if 'episode_offset' in item.parameters:
+            del item.parameters['episode_offset']
+
+        # Update default season
+        item.parameters['default_season'] = first_season
 
     @classmethod
     def fetch(cls, identifiers):
