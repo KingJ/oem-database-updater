@@ -3,6 +3,7 @@ from oem_updater.models.episode import Episode
 
 from copy import deepcopy
 import logging
+import six
 
 log = logging.getLogger(__name__)
 
@@ -31,13 +32,13 @@ class Season(models.Season):
                     episode_num = item.parameters['episode_offset']
         elif len(item.episodes) == 1:
             # Use number of first episode in season
-            episode_num = item.episodes.keys()[0]
+            episode_num = list(item.episodes.keys())[0]
         else:
             # Add additional episodes from season
             for key, episode in item.episodes.items():
                 episode.identifiers = episode.identifiers or deepcopy(item.identifiers)
 
-                for name_key, names in item.names.iteritems():
+                for name_key, names in six.iteritems(item.names):
                     episode.names[name_key] = names
 
                 episode.supplemental = episode.supplemental or deepcopy(item.supplemental)
@@ -84,9 +85,9 @@ class Season(models.Season):
                 elif type(self.identifiers[service]) is set:
                     self.identifiers[service].add(key)
                 elif self.identifiers[service] != key:
-                    self.identifiers[service] = {self.identifiers[service], key}
+                    self.identifiers[service] = set([self.identifiers[service], key])
 
-            for key, names in item.names.iteritems():
+            for key, names in six.iteritems(item.names):
                 self.names[key] = names
 
             self.supplemental.update(item.supplemental)
@@ -130,7 +131,7 @@ class Season(models.Season):
             # Update mapping
             mapping.identifiers = deepcopy(item.identifiers)
 
-            for key, names in item.names.iteritems():
+            for key, names in six.iteritems(item.names):
                 mapping.names[key] = names
 
             # Store mapping in current season
@@ -139,7 +140,7 @@ class Season(models.Season):
         return True
 
     def update(self, item):
-        for key, name in item.names.iteritems():
+        for key, name in six.iteritems(item.names):
             self.names[key] = name
 
         self.supplemental = item.supplemental
@@ -169,7 +170,7 @@ class Season(models.Season):
         if episode_offset is not None:
             try:
                 episode_num = str(int(episode_offset) + 1)
-            except ValueError, ex:
+            except ValueError as ex:
                 log.warn('Unable parse episode offset %r - %s', episode_offset, ex, exc_info=True)
                 episode_num = episode_offset
 
@@ -202,7 +203,7 @@ class Season(models.Season):
                     # Update episode
                     episode.identifiers = deepcopy(self.identifiers)
 
-                    for name_key, names in self.names.iteritems():
+                    for name_key, names in six.iteritems(self.names):
                         episode.names[name_key] = names
 
                     episode.supplemental = episode.supplemental or deepcopy(self.supplemental)
@@ -225,7 +226,7 @@ class Season(models.Season):
                 # Update mapping
                 mapping.identifiers = deepcopy(self.identifiers)
 
-                for key, names in self.names.iteritems():
+                for key, names in six.iteritems(self.names):
                     mapping.names[key] = names
 
                 demoted = True
@@ -303,9 +304,9 @@ class Season(models.Season):
             elif type(self.identifiers[service]) is set:
                 self.identifiers[service].add(key)
             elif self.identifiers[service] != key:
-                self.identifiers[service] = {self.identifiers[service], key}
+                self.identifiers[service] = set([self.identifiers[service], key])
 
-        for key, value in (names or {}).iteritems():
+        for key, value in six.iteritems(names or {}):
             self.names[key] = value
 
         if supplemental is not None:

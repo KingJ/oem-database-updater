@@ -81,9 +81,9 @@ class Parser(object):
 
         if type(target_key) is list:
             for key in target_key:
-                item.names[key] = {node.find('name').text}
+                item.names[key] = set([node.find('name').text])
         else:
-            item.names[target_key] = {node.find('name').text}
+            item.names[target_key] = set([node.find('name').text])
 
         # Parse mappings
         if item.media == 'show' and not cls.parse_mappings(collection, item, mappings):
@@ -148,7 +148,10 @@ class Parser(object):
         return True
 
     @classmethod
-    def parse_mappings_episode(cls, collection, item, mapping, (source_season, target_season)):
+    def parse_mappings_episode(cls, collection, item, mapping, identifier):
+        source_season, target_season = identifier
+
+        # Parse episodes
         episodes = list(cls.parse_episodes(collection, mapping.text))
 
         if not episodes:
@@ -189,7 +192,9 @@ class Parser(object):
         return True
 
     @classmethod
-    def parse_mappings_season(cls, collection, item, mapping, (source_season, target_season)):
+    def parse_mappings_season(cls, collection, item, mapping, identifier):
+        source_season, target_season = identifier
+
         # Retrieve parameters, convert to integers
         start = int(mapping.attrib.get('start'))
         end = int(mapping.attrib.get('end'))

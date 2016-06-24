@@ -13,9 +13,9 @@ def test_season_merge():
             'anidb': 522,
             'tvdb': 103691
         },
-        names={
+        names=set([
             'Juusenki L-Gaim'
-        },
+        ]),
 
         default_season='1'
     )
@@ -31,9 +31,9 @@ def test_season_merge():
             'anidb': 523,
             'tvdb': 103691
         },
-        names={
+        names=set([
             'Heavy Metal L-Gaim I: Pentagona Window + Lady Gavlet'
-        },
+        ]),
 
         default_season='0'
     )
@@ -49,9 +49,9 @@ def test_season_merge():
             'anidb': 2488,
             'tvdb': 103691
         },
-        names={
+        names=set([
             'Heavy Metal L-Gaim II: Farewell My Lovely + Pentagona Dolls'
-        },
+        ]),
 
         default_season='0'
     )
@@ -71,9 +71,9 @@ def test_season_merge():
             'anidb': 2489,
             'tvdb': 103691
         },
-        names={
+        names=set([
             'Heavy Metal L-Gaim III: Fullmetal Soldier'
-        },
+        ]),
 
         default_season='0'
     )

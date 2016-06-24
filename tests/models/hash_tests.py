@@ -45,4 +45,4 @@ def test_binary():
         default_season='1'
     )
 
-    assert current.hash() == '>\xbbiu\xa1\x13R\xba\xc5\xdeB\x17\xf9\xddU='
+    assert current.hash() == b'>\xbbiu\xa1\x13R\xba\xc5\xdeB\x17\xf9\xddU='

@@ -2,6 +2,7 @@ from oem_framework import models
 from oem_framework.models.core import ModelRegistry
 
 import logging
+import six
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class Show(models.Show):
 
         # Add seasons to current show
         season_numbers = set([
-            s.number for s in item.seasons.itervalues()
+            s.number for s in six.itervalues(item.seasons)
         ] + [
             item.parameters.get('default_season')
         ])
@@ -45,7 +46,7 @@ class Show(models.Show):
         return not error
 
     def update(self, item):
-        for key, names in item.names.iteritems():
+        for key, names in six.iteritems(item.names):
             self.names[key] = names
 
         self.supplemental = item.supplemental

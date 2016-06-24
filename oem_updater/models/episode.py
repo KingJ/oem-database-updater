@@ -2,13 +2,14 @@ from oem_framework import models
 
 from copy import deepcopy
 import logging
+import six
 
 log = logging.getLogger(__name__)
 
 
 class Episode(models.Episode):
     def update(self, item):
-        for key, names in item.names.iteritems():
+        for key, names in six.iteritems(item.names):
             self.names[key] = names
 
         self.supplemental = item.supplemental
