@@ -7,26 +7,42 @@ import logging
 import os
 import tvdb_api
 
-dirs = AppDirs('oem-updater', 'OpenEntityMap')
 log = logging.getLogger(__name__)
-
-# Ensure directories exist
-if not os.path.exists(dirs.user_cache_dir):
-    os.makedirs(dirs.user_cache_dir)
-
-# Construct API clients
-anidb = anidb.Anidb(cache=dirs.user_cache_dir, rate_limit=5)
-tvdb = tvdb_api.Tvdb(apikey=TVDB_API_KEY, cache=dirs.user_cache_dir, use_requests=True)
 
 
 class AbsoluteMapper(object):
+    constructed = False
+
+    anidb = None
     anidb_cache = {}
+
+    tvdb = None
     tvdb_cache = {}
+
+    @classmethod
+    def _construct(cls):
+        if cls.constructed:
+            return
+
+        dirs = AppDirs('oem-updater', 'OpenEntityMap')
+
+        # Ensure directories exist
+        if not os.path.exists(dirs.user_cache_dir):
+            os.makedirs(dirs.user_cache_dir)
+
+        # Construct API clients
+        cls.anidb = anidb.Anidb(cache=dirs.user_cache_dir, rate_limit=5)
+        cls.tvdb = tvdb_api.Tvdb(apikey=TVDB_API_KEY, cache=dirs.user_cache_dir, use_requests=True)
+
+        cls.constructed = True
 
     @classmethod
     def process(cls, collection, item):
         if not isinstance(item, Show):
             return False
+
+        # Ensure clients are constructed
+        cls._construct()
 
         # Retrieve default season
         default_season = item.parameters.get('default_season')
@@ -198,8 +214,8 @@ class AbsoluteMapper(object):
 
         # Fetch anidb metadata
         try:
-            anidb_metadata = anidb.anime(anidb_id)
-        except Exception, ex:
+            anidb_metadata = cls.anidb.anime(anidb_id)
+        except Exception as ex:
             log.warn('Unable to retrieve %r from anidb.net - %s', anidb_id, ex)
             cls.anidb_cache[anidb_id] = None
             return None
@@ -221,7 +237,7 @@ class AbsoluteMapper(object):
     def fetch_tvdb(cls, tvdb_id):
         try:
             tvdb_id = int(tvdb_id)
-        except Exception, ex:
+        except Exception as ex:
             raise ValueError('Invalid value provided for "tvdb_id" - %s' % ex)
 
         # Check if metadata has been cached
@@ -230,8 +246,8 @@ class AbsoluteMapper(object):
 
         # Fetch tvdb metadata
         try:
-            tvdb_metadata = tvdb[tvdb_id]
-        except Exception, ex:
+            tvdb_metadata = cls.tvdb[tvdb_id]
+        except Exception as ex:
             log.warn('Unable to retrieve %r from thetvdb - %s', tvdb_id, ex)
             cls.tvdb_cache[tvdb_id] = None
             return None
