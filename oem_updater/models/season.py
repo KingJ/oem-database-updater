@@ -282,10 +282,7 @@ class Season(models.Season):
             season.episodes = item.seasons[number].episodes
             season.mappings = item.seasons[number].mappings
 
-            season.parameters = item.seasons[number].parameters
-
-        if season.parameters is None:
-            pass
+            season.parameters.update(item.seasons[number].parameters)
 
         return season
 
