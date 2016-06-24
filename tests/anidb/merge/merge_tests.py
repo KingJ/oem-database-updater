@@ -18,7 +18,7 @@ def merge_items(collection, filename):
             continue
 
         # Parse item
-        item = Parser.parse_item(collection, node)
+        item = Parser.parse_item(collection, node, use_absolute_mapper=False)
 
         if item is None:
             continue

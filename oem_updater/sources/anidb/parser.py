@@ -14,7 +14,7 @@ class Parser(object):
 
     @classmethod
     @Elapsed.track
-    def parse_item(cls, collection, node):
+    def parse_item(cls, collection, node, use_absolute_mapper=True):
         # Retrieve AniDb identifier
         anidb_id = node.attrib.get('anidbid').split(',')
 
@@ -100,8 +100,10 @@ class Parser(object):
                 if node is not None:
                     item.supplemental[key] = node.text
 
-        # Parse absolute mappings
-        AbsoluteMapper.process(collection, item)
+        # Convert absolute mappings (if enabled)
+        if use_absolute_mapper:
+            AbsoluteMapper.process(collection, item)
+
         return item
 
     @classmethod
