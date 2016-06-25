@@ -25,4 +25,5 @@ deploy:
   - "dist/oem_database_updater-*"
   on:
     repo: OpenEntityMap/oem-database-updater
+    condition: $TRAVIS_PYTHON_VERSION = "2.7"
     tags: true
