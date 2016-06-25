@@ -1,4 +1,3 @@
--e ../bencode.py
 -e ../oem-framework
 -e ../oem-core
 
@@ -7,4 +6,5 @@ msgpack-python>=0.4.7
 six>=1.10.0
 
 -e git://github.com/fuzeman/anidb.py.git#egg=anidb.py
+-e git://github.com/fuzeman/bencode.py.git#egg=bencode.py
 -e git://github.com/fuzeman/tvdb_api.git#egg=tvdb_api
