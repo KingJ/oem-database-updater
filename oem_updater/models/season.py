@@ -18,7 +18,9 @@ class Season(models.Season):
             return self.update(item)
 
         # Break season into episodes (if we are merging episodes
-        if ('episode_offset' in self.parameters or self.episodes or self.mappings) and self.collection.target in self.identifiers and not self.demote():
+        if ('episode_offset' in self.parameters or self.episodes or self.mappings) and \
+                self.collection.target in self.identifiers and \
+                not self.demote():
             return False
 
         # Retrieve episode number

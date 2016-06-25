@@ -141,7 +141,6 @@ class Parser(object):
 
         # Check for parsing error
         if error:
-            # log.warn('[anidb: %s] Ignoring item, no episodes could be parsed from mappings', item.identifiers.get('anidb'))
             return False
 
         # Successfully parsed item

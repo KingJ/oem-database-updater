@@ -1,8 +1,6 @@
 from oem_core import models
 from oem_framework.core.helpers import timestamp_utc
 
-import os
-
 
 class Metadata(models.Metadata):
     def update(self, item, hash_key, hash):

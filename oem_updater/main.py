@@ -1,9 +1,3 @@
-import logging
-
-from oem_framework.storage import ProviderStorage
-
-logging.basicConfig(level=logging.DEBUG)
-
 from oem_core.core.plugin import PluginManager
 from oem_updater.models import Database
 from oem_updater.sources import SOURCES
