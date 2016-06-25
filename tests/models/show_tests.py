@@ -12,9 +12,9 @@ def test_merge_season_with_episodes():
             'anidb': 4057,
             'tvdb': 71419
         },
-        names={
+        names=set([
             'Kinnikuman II Sei: Ultimate Muscle 2'
-        },
+        ]),
 
         default_season='3'
     )
@@ -25,9 +25,9 @@ def test_merge_season_with_episodes():
             'anidb': 2134,
             'tvdb': 71419
         },
-        names={
+        names=set([
             'Kinnikuman II Sei: Ultimate Muscle'
-        },
+        ]),
 
         default_season='3'
     )
@@ -53,10 +53,10 @@ def test_merge_season_with_episodes():
     assert len(current.seasons['3'].episodes) == 3
 
     assert current.seasons['3'].identifiers == {'anidb': 4057}
-    assert current.seasons['3'].names == {4057: {'Kinnikuman II Sei: Ultimate Muscle 2'}}
+    assert current.seasons['3'].names == {4057: set(['Kinnikuman II Sei: Ultimate Muscle 2'])}
 
     assert current.seasons['3'].episodes['14'].identifiers == {'anidb': 2134}
-    assert current.seasons['3'].episodes['14'].names == {2134: {'Kinnikuman II Sei: Ultimate Muscle'}}
+    assert current.seasons['3'].episodes['14'].names == {2134: set(['Kinnikuman II Sei: Ultimate Muscle'])}
 
 
 def test_merge_episodes_with_season():
@@ -68,9 +68,9 @@ def test_merge_episodes_with_season():
             'anidb': 2134,
             'tvdb': 71419
         },
-        names={
+        names=set([
             'Kinnikuman II Sei: Ultimate Muscle'
-        },
+        ]),
 
         default_season='3'
     )
@@ -93,9 +93,9 @@ def test_merge_episodes_with_season():
             'anidb': 4057,
             'tvdb': 71419
         },
-        names={
+        names=set([
             'Kinnikuman II Sei: Ultimate Muscle 2'
-        },
+        ]),
 
         default_season='3'
     ), 'tvdb')
@@ -107,7 +107,7 @@ def test_merge_episodes_with_season():
     assert len(current.seasons['3'].episodes) == 3
 
     assert current.seasons['3'].identifiers == {'anidb': 4057}
-    assert current.seasons['3'].names == {4057: {'Kinnikuman II Sei: Ultimate Muscle 2'}}
+    assert current.seasons['3'].names == {4057: set(['Kinnikuman II Sei: Ultimate Muscle 2'])}
 
     assert current.seasons['3'].episodes['14'].identifiers == {'anidb': 2134}
-    assert current.seasons['3'].episodes['14'].names == {2134: {'Kinnikuman II Sei: Ultimate Muscle'}}
+    assert current.seasons['3'].episodes['14'].names == {2134: set(['Kinnikuman II Sei: Ultimate Muscle'])}

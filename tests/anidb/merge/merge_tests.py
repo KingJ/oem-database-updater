@@ -4,6 +4,7 @@ from tests.core.mock import MockCollection
 
 from xml.etree import ElementTree
 import os
+import six
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -142,7 +143,7 @@ def test_gall_force():
     # - Season 1
     assert current.seasons['1'].identifiers == {'anidb': '760'}
     assert current.seasons['1'].names == {'760': set(['Gall Force: Eternal Story'])}
-    assert set(current.seasons['1'].episodes.keys()) == set(str(x) for x in xrange(2, 14))
+    assert set(current.seasons['1'].episodes.keys()) == set(str(x) for x in six.moves.xrange(2, 14))
 
     assert current.seasons['1'].episodes['5'].identifiers == {'anidb': '2115'}
     assert current.seasons['1'].episodes['5'].names == {'2115': set(['Gall Force: Chikyuu Shou'])}

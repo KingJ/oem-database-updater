@@ -15,9 +15,9 @@ def test_absolute_season():
             'anidb': 1530,
             'tvdb': 81472
         },
-        names={
+        names=set([
             'Dragon Ball Z'
-        },
+        ]),
 
         default_season='a'
     )
@@ -36,9 +36,9 @@ def test_invalid_show():
             'anidb': 1490,
             'tvdb': 81341
         },
-        names={
+        names=set([
             'Jungle Taitei (1997)'
-        },
+        ]),
 
         default_season='0'
     )

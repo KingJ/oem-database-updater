@@ -15,9 +15,9 @@ def test_hex():
             'anidb': 522,
             'tvdb': 103691
         },
-        names={
+        names=set([
             'Juusenki L-Gaim'
-        },
+        ]),
 
         default_season='1'
     )
@@ -38,9 +38,9 @@ def test_binary():
             'anidb': 522,
             'tvdb': 103691
         },
-        names={
+        names=set([
             'Juusenki L-Gaim'
-        },
+        ]),
 
         default_season='1'
     )
