@@ -1,8 +1,10 @@
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+from oem_core.core.plugin import PluginManager
 from oem_updater.main import Updater
-from oem_updater.sources import SOURCES
 
 from argparse import ArgumentParser
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -14,8 +16,11 @@ class UpdaterCLI(object):
         parser.add_argument('-d', '--debug', action='store_true', default=False)
         parser.add_argument('-f', '--format', action='append')
 
-        # Add arguments from sources
-        for source in SOURCES.itervalues():
+        # Discover installed plugins
+        PluginManager.discover()
+
+        # Add arguments from updater sources
+        for _, source in PluginManager.list_ordered('database-updater'):
             for argument in source.__parameters__:
                 if 'name' not in argument:
                     log.warn('Invalid source argument: %r', argument)

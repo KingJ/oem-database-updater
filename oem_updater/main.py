@@ -1,6 +1,5 @@
 from oem_core.core.plugin import PluginManager
 from oem_updater.models import Database
-from oem_updater.sources import SOURCES
 
 import logging
 import os
@@ -34,18 +33,23 @@ class Updater(object):
         PluginManager.discover()
 
         # Retrieve formats
-        self.formats = dict(self._load_formats(formats))
+        self.formats = dict(self._load_plugins(
+            'format', formats or DEFAULT_FORMATS
+        ))
 
-        # Retrieve references to sources
-        self.sources = dict([
-            (key, SOURCES[key])
-            for key in sources
-        ])
+        # Retrieve sources
+        self.sources = dict(self._load_plugins(
+            'database-updater', sources or DEFAULT_SOURCES,
+            construct=False
+        ))
 
     @staticmethod
-    def _load_formats(formats):
-        for name in (formats or DEFAULT_FORMATS):
-            cls = PluginManager.get('format', name)
+    def _load_plugins(kind, keys, construct=True):
+        if not keys:
+            return
+
+        for name in keys:
+            cls = PluginManager.get(kind, name)
 
             if cls is None:
                 log.warn('Unable to find plugin: %r', name)
@@ -55,7 +59,10 @@ class Updater(object):
                 log.warn('Plugin %r is not available', name)
                 continue
 
-            yield cls.__key__, cls()
+            if construct:
+                yield cls.__key__, cls()
+            else:
+                yield cls.__key__, cls
 
     def run(self, base_path, **kwargs):
         if not os.path.exists(base_path):
