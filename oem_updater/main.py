@@ -119,14 +119,14 @@ class Updater(object):
                     try:
                         s = cls(collection, **kwargs)
                         s.run()
-                    except Exception, ex:
+                    except Exception as ex:
                         log.warn('Unable to run updater on %r (format: %r) - %s', database_path, fmt, ex, exc_info=True)
                         return False
 
                     # Write collection to disk
                     try:
                         collection.write()
-                    except Exception, ex:
+                    except Exception as ex:
                         log.warn('Unable to write collection to disk - %s', ex, exc_info=True)
                         return False
 
@@ -153,4 +153,4 @@ if __name__ == '__main__':
 
     # Display call statistics
     for line in Elapsed.format_statistics():
-        print line
+        print(line)
