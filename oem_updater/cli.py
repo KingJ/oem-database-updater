@@ -14,7 +14,9 @@ class UpdaterCLI(object):
         parser = ArgumentParser()
         parser.add_argument('base_path')
         parser.add_argument('-d', '--debug', action='store_true', default=False)
+        parser.add_argument('-c', '--collection', action='append')
         parser.add_argument('-f', '--format', action='append')
+        parser.add_argument('-s', '--source', action='append', required=True)
 
         # Discover installed plugins
         PluginManager.discover()
@@ -28,6 +30,7 @@ class UpdaterCLI(object):
 
                 parser.add_argument('--%s-%s' % (source.__key__, argument['name']), **argument.get('kwargs', {}))
 
+        # Parse command line arguments
         return parser.parse_args()
 
     def run(self, updater=None):
@@ -41,7 +44,47 @@ class UpdaterCLI(object):
 
         # Construct updater
         if updater is None:
-            updater = Updater(formats=args.format)
+            updater = Updater(
+                args.source,
+                collections=self._parse_collections(args.collection),
+                formats=args.format
+            )
 
         # Run updater
         updater.run(**args.__dict__)
+
+    @staticmethod
+    def _parse_collections(collections):
+        if not collections:
+            return None
+
+        def iterator():
+            for key in collections:
+                # Parse key
+                fragments = key.split('^')
+
+                if len(fragments) != 2:
+                    log.warn('Invalid collection key: %r', key)
+                    continue
+
+                source, target = fragments
+
+                # Parse source key
+                source = source.split(':')
+
+                if len(source) == 1:
+                    source = source[0]
+                else:
+                    source = tuple(source)
+
+                # Parse target key
+                target = target.split(':')
+
+                if len(target) == 1:
+                    target = target[0]
+                else:
+                    target = tuple(target)
+
+                yield source, target
+
+        return list(iterator())

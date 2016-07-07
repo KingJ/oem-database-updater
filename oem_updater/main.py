@@ -6,11 +6,6 @@ import os
 
 log = logging.getLogger(__name__)
 
-DEFAULT_COLLECTIONS = [
-    ('anidb', 'tvdb'),
-    ('anidb', 'imdb')
-]
-
 DEFAULT_FORMATS = [
     'json',
     'json/pretty',
@@ -20,13 +15,9 @@ DEFAULT_FORMATS = [
     'minimize+msgpack'
 ]
 
-DEFAULT_SOURCES = [
-    'anidb'
-]
-
 
 class Updater(object):
-    def __init__(self, collections=DEFAULT_COLLECTIONS, formats=None, sources=DEFAULT_SOURCES):
+    def __init__(self, sources, collections=None, formats=None):
         self.collections = collections
 
         # Discover installed plugins
@@ -39,7 +30,7 @@ class Updater(object):
 
         # Retrieve sources
         self.sources = dict(self._load_plugins(
-            'database-updater', sources or DEFAULT_SOURCES,
+            'database-updater', sources,
             construct=False
         ))
 
@@ -69,68 +60,98 @@ class Updater(object):
             log.error('Path %r doesn\'t exist', base_path)
             return False
 
-        for source, target in self.collections:
-            # Retrieve source class
-            cls = self.sources.get(source)
+        for _, cls in self.sources.items():
+            # Retrieve collections
+            collections = cls.__collections__
 
-            if not cls:
-                log.warn('Unknown source: %r', source)
-                continue
+            # Filter `collections` by provided list
+            if self.collections is not None:
+                collections = [
+                    key for key in collections
+                    if key in self.collections
+                ]
 
-            # Build collection path
-            database_path = os.path.join(
-                base_path,
-                'oem-database-%s-%s' % (source, target),
-                'oem_database_%s_%s' % (source, target)
-            )
-
-            # Ensure database exists
-            if not os.path.exists(database_path):
-                log.warn('Unknown collection: %r -> %r', source, target)
-                continue
-
-            # Run updater on database for each format
-            for fmt in self.formats.itervalues():
-                if fmt.__construct__ is False:
-                    continue
-
-                # Build updater client
-                client = UpdaterClient(fmt)
-
-                # Build database storage interface
-                storage = PluginManager.get('storage', 'file/database')(
-                    self, source, target,
-                    path=database_path
+            # Run updater on each collection
+            for source, target in collections:
+                # Build collection path
+                database_path = os.path.join(
+                    base_path,
+                    self._build_package_name(source, target),
+                    self._build_module_name(source, target)
                 )
 
-                storage.initialize(client)
+                # Ensure database exists
+                if not os.path.exists(database_path):
+                    log.warn('Unknown collection: %r -> %r', source, target)
+                    continue
 
-                # Load database
-                database = Database.load(storage, source, target)
+                # Run updater on database for each format
+                for fmt in self.formats.itervalues():
+                    if fmt.__construct__ is False:
+                        continue
 
-                # Load database collections
-                database.load_collections([
-                    (source, target),
-                    (target, source)
-                ])
+                    # Build updater client
+                    client = UpdaterClient(fmt)
 
-                for collection in database.collections.itervalues():
-                    # Run updater on collection
-                    try:
-                        s = cls(collection, **kwargs)
-                        s.run()
-                    except Exception as ex:
-                        log.warn('Unable to run updater on %r (format: %r) - %s', database_path, fmt, ex, exc_info=True)
-                        return False
+                    # Build database storage interface
+                    storage = PluginManager.get('storage', 'file/database')(
+                        self, source, target,
+                        path=database_path
+                    )
 
-                    # Write collection to disk
-                    try:
-                        collection.write()
-                    except Exception as ex:
-                        log.warn('Unable to write collection to disk - %s', ex, exc_info=True)
-                        return False
+                    storage.initialize(client)
+
+                    # Load database
+                    database = Database.load(storage, source, target)
+
+                    # Load database collections
+                    database.load_collections([
+                        (source, target),
+                        (target, source)
+                    ])
+
+                    for collection in database.collections.itervalues():
+                        # Run updater on collection
+                        try:
+                            s = cls(collection, **dict([
+                                (key, value) for key, value in kwargs.items()
+                                if key.startswith(cls.__key__ + '_')
+                            ]))
+
+                            if not s.run():
+                                return False
+                        except Exception as ex:
+                            log.warn('Unable to run updater on %r (format: %r) - %s', database_path, fmt, ex, exc_info=True)
+                            return False
+
+                        # Write collection to disk
+                        try:
+                            collection.write()
+                        except Exception as ex:
+                            log.warn('Unable to write collection to disk - %s', ex, exc_info=True)
+                            return False
 
         return True
+
+    @staticmethod
+    def _build_module_name(source, target):
+        if type(source) is tuple:
+            source = '_'.join(source)
+
+        if type(target) is tuple:
+            target = '_'.join(target)
+
+        return 'oem_database_%s_%s' % (source, target)
+
+    @staticmethod
+    def _build_package_name(source, target):
+        if type(source) is tuple:
+            source = '-'.join(source)
+
+        if type(target) is tuple:
+            target = '-'.join(target)
+
+        return 'oem-database-%s-%s' % (source, target)
 
 
 class UpdaterClient(object):
@@ -153,4 +174,4 @@ if __name__ == '__main__':
 
     # Display call statistics
     for line in Elapsed.format_statistics():
-        print(line)
+        log.info(line)

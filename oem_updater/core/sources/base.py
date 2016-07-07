@@ -5,6 +5,7 @@ log = logging.getLogger(__name__)
 
 
 class Source(Plugin):
+    __collections__ = []
     __parameters__ = []
 
     def __init__(self, collection, **kwargs):
