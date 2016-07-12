@@ -20,7 +20,14 @@ class Metadata(models.Metadata):
             else:
                 self.updated_at = now
 
+        # Store hash
         self.hashes[hash_key] = hash
 
+        # Remove duplicate hashes
+        for k in list(self.hashes.keys()):
+            if self.hashes[k] == hash and k != hash_key:
+                del self.hashes[k]
+
+        # Update attributes
         self.media = item.media
         return True
