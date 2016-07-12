@@ -67,24 +67,6 @@ class UpdaterCLI(object):
                     log.warn('Invalid collection key: %r', key)
                     continue
 
-                source, target = fragments
-
-                # Parse source key
-                source = source.split(':')
-
-                if len(source) == 1:
-                    source = source[0]
-                else:
-                    source = tuple(source)
-
-                # Parse target key
-                target = target.split(':')
-
-                if len(target) == 1:
-                    target = target[0]
-                else:
-                    target = tuple(target)
-
-                yield source, target
+                yield tuple(fragments)
 
         return list(iterator())

@@ -135,23 +135,17 @@ class Updater(object):
 
     @staticmethod
     def _build_module_name(source, target):
-        if type(source) is tuple:
-            source = '_'.join(source)
-
-        if type(target) is tuple:
-            target = '_'.join(target)
-
-        return 'oem_database_%s_%s' % (source, target)
+        return 'oem_database_%s_%s' % (
+            source.replace(':', '_'),
+            target.replace(':', '_')
+        )
 
     @staticmethod
     def _build_package_name(source, target):
-        if type(source) is tuple:
-            source = '-'.join(source)
-
-        if type(target) is tuple:
-            target = '-'.join(target)
-
-        return 'oem-database-%s-%s' % (source, target)
+        return 'oem-database-%s-%s' % (
+            source.replace(':', '-'),
+            target.replace(':', '-')
+        )
 
 
 class UpdaterClient(object):
