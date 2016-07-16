@@ -22,6 +22,8 @@ DEPENDENCIES = [
         '-rrequirements_vendor.txt',
         '-rtests/requirements_vendor.txt',
 
+        '--editable=git://github.com/fuzeman/bencode.py.git#egg=bencode.py',
+
         '--editable=git+https://github.com/OpenEntityMap/oem-framework.git@{BRANCH}#egg=oem-framework',
         '--editable=git+https://github.com/OpenEntityMap/oem-core.git@{BRANCH}#egg=oem-core'
     ])
