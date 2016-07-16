@@ -1,10 +1,11 @@
+from oem_framework.plugin import Plugin
 import logging
 
 log = logging.getLogger(__name__)
 
 
-class Source(object):
-    __key__ = None
+class Source(Plugin):
+    __collections__ = []
     __parameters__ = []
 
     def __init__(self, collection, **kwargs):
