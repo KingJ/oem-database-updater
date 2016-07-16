@@ -121,7 +121,11 @@ class Updater(object):
                             if not s.run():
                                 return False
                         except Exception as ex:
-                            log.warn('Unable to run updater on %r (format: %r) - %s', database_path, fmt, ex, exc_info=True)
+                            log.warn(
+                                'Unable to run updater on %r (format: %r) - %s',
+                                database_path, fmt, ex,
+                                exc_info=True
+                            )
                             return False
 
                         # Write collection to disk

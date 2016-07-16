@@ -1,12 +1,13 @@
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
 from oem_core.core.plugin import PluginManager
 from oem_updater.main import Updater
 
 from argparse import ArgumentParser
+import logging
 
 log = logging.getLogger(__name__)
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 class UpdaterCLI(object):
