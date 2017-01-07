@@ -113,10 +113,7 @@ class Updater(object):
                     for collection in database.collections.itervalues():
                         # Run updater on collection
                         try:
-                            s = cls(collection, **dict([
-                                (key, value) for key, value in kwargs.items()
-                                if key.startswith(cls.__key__ + '_')
-                            ]))
+                            s = cls(collection, kwargs)
 
                             if not s.run():
                                 return False

@@ -15,6 +15,8 @@ class UpdaterCLI(object):
         parser = ArgumentParser()
         parser.add_argument('base_path')
         parser.add_argument('-d', '--debug', action='store_true', default=False)
+        parser.add_argument('-p', '--progress', action='store_true', default=False)
+
         parser.add_argument('-c', '--collection', action='append')
         parser.add_argument('-f', '--format', action='append')
         parser.add_argument('-s', '--source', action='append', required=True)
